@@ -1,0 +1,107 @@
+.home-container{
+    box-shadow: 2px 2px 8px 0 rgba(0,0,0,.2);
+    height: 16em;
+    width: 30em;
+    display: flex;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top:10%;
+}
+.findroom{
+    margin-top: 2%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.inputroom{
+    height: 2em;
+    width: 18em;
+    display: block;
+    margin: 0;
+    color: inherit;
+    font-family: inherit;
+    font-size: var(--inputFontSize);
+    font-weight: inherit;
+    line-height: var(--inputLineHeight);
+    border-radius: 0.4rem;
+    transition: box-shadow var(--transitionDuration);
+}
+
+.buttonfindroom {
+  background-color: #13aa52;
+  border: 1px solid #13aa52;
+  border-radius: 4px;
+  box-shadow: rgba(0, 0, 0, .1) 0 2px 4px 0;
+  box-sizing: border-box;
+  color: #fff;
+  cursor: pointer;
+  font-family: "Akzidenz Grotesk BQ Medium", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  outline: none;
+  outline: 0;
+  padding: 10px 25px;
+  margin-top: 20%;
+  text-align: center;
+  transform: translateY(0);
+  transition: transform 150ms, box-shadow 150ms;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  text-decoration: none;
+  margin-left: 30%;
+}
+
+.buttonfindroom:hover {
+  box-shadow: rgba(0, 0, 0, .15) 0 3px 9px 0;
+  transform: translateY(-2px);
+}
+
+@media (min-width: 768px) {
+  .buttonfindroom {
+    padding: 10px 30px;
+  }
+}
+
+.buttoncreateroom {
+  background-color: #13aa52;
+  border: 1px solid #13aa52;
+  border-radius: 4px;
+  box-shadow: rgba(0, 0, 0, .1) 0 2px 4px 0;
+  box-sizing: border-box;
+  color: #fff;
+  cursor: pointer;
+  font-family: "Akzidenz Grotesk BQ Medium", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  outline: none;
+  outline: 0;
+  padding: 10px 25px;
+  margin-top: 20%;
+  text-align: center;
+  transform: translateY(0);
+  transition: transform 150ms, box-shadow 150ms;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  text-decoration: none;
+  margin-left: 35%;
+}
+
+.buttoncreateroom:hover {
+  box-shadow: rgba(0, 0, 0, .15) 0 3px 9px 0;
+  transform: translateY(-2px);
+}
+
+@media (min-width: 768px) {
+  .buttoncreateroom {
+    padding: 10px 30px;
+  }
+}
+
+.labelfind{
+  margin-left: 8%;
+}
+.labelcreate{
+  margin-left: 17%;
+}
