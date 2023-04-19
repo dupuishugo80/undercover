@@ -16,6 +16,7 @@ const Game = (props) => {
   const [arrayPlayer, setArrayPlayer] = useState([]);
   const [roomInfo, setRoomInfo] = useState([]);
   const [nbMaxPlayer, setNbMaxPlayer] = useState(0);
+  const [started, setStarted] = useState(false);
   const [broadcastMessage, setBroadcastMessage] = useState("");
 
   const handleConnect = (event) => {
@@ -44,21 +45,38 @@ const Game = (props) => {
 
   socket.on("broadcastMessage", (message) => {
     setBroadcastMessage(message);
+    setStarted(true);
   });
 
   if(connected){
     return (
-      <div className="chat-room-container">
-        <h1 className="room-name">ID Partie : {roomId}</h1>
-        <h1 className="room-name">Pseudo : {Username}</h1>
-        <h1 className="room-name">Nombre de joueurs connecté : {nbPlayer}/{nbMaxPlayer}</h1>
-        Liste des joueurs :
-        <ul>
-        {arrayPlayer.map(player => (
-          <li key={player.socketId}>{player.username}</li>
-        ))}
-        </ul>
-        <h3>{broadcastMessage}</h3>
+      <div className="container">
+        <div className="game-container">
+          <div className="room-info">
+            <h1>Info sur la partie :</h1>
+            ID d'accès : <b>{roomId}</b>
+            <br></br>
+            <br></br>
+            Joueurs :{" "}
+            <b>
+              {nbPlayer}/{nbMaxPlayer}
+            </b>
+          </div>
+          <div className="liste-joueurs">
+            <h1>Liste des joueurs :</h1>
+            <ul>
+              {arrayPlayer.map((player) => (
+                <li key={player.socketId}>{player.username}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+        {started ? (
+          <div>
+            <br></br>
+            Mot attribué : <b>{broadcastMessage}</b>
+          </div>
+        ) : null}
       </div>
     );
   }else{

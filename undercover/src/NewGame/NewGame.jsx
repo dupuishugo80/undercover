@@ -9,6 +9,7 @@ const socket = io("http://localhost:4000"); // L'adresse du serveur Socket.io
 function ChatRoom() {
   const [roomId, setRoomId] = useState(gameFunctions.createNewGame());
   const [connected, setConnected] = useState(false);
+  const [started, setStarted] = useState(false);
   const { nbMaxPlayer } = useParams();
   const { Owner } = useParams();
   const [nbPlayer, setNbPlayer] = useState(0);
@@ -41,6 +42,7 @@ function ChatRoom() {
 
   socket.on("broadcastMessage", async (message) => {
     setBroadcastMessage(message);
+    setStarted(true);
   });
 
   if (connected) {
@@ -66,12 +68,19 @@ function ChatRoom() {
             </ul>
           </div>
         </div>
-        <div className="div-button">
+        {!started ? (
+          <div className="div-button">
           <button className="buttonstart" onClick={handleClick}>
             Lancer la partie
           </button>
         </div>
-        <h3>{broadcastMessage}</h3>
+        ) : null}
+        {started ? (
+          <div>
+            <br></br>
+            Mot attribué : <b>{broadcastMessage}</b>
+          </div>
+        ) : null}
       </div>
     );
   } else {
