@@ -39,15 +39,15 @@ function websocket() {
         arrayTimer.push(countdown);
     }
 
-    function resetTimer(countdown, roomId) {
+    function resetTimer() {
         arrayTimer.forEach((countdown) => {
             clearInterval(countdown);
           });
-          starttimer(roomId);
       }
 
     socket.on('resetTimer', (countdown, roomId)  => {
-        resetTimer(countdown, roomId);
+        resetTimer();
+        starttimer(roomId);
       });
 
     socket.on('joinRoom', (roomId,username)  => {
@@ -145,6 +145,7 @@ function websocket() {
             arrayRoom.splice(index, 1);
             }
             io.to(roomId).emit("listPlayer", (arrayRoom));
+            resetTimer();
         }
         });
     });
