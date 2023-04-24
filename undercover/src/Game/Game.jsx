@@ -12,16 +12,20 @@ const socket = io('http://localhost:4000');
 const Game = (props) => {
   const { roomId, Username } =  useParams();
   const [connected, setConnected] = useState(false);
+  const [isMyTour, setIsMyTour] = useState(false);
   const [nbPlayer, setNbPlayer] = useState(0);
   const [arrayPlayer, setArrayPlayer] = useState([]);
   const [indices, setIndices] = useState([]);
   const [arrayAllPlayer, setarrayAllPlayer] = useState([]);
   const [arrayTourUsername, setArrayTourUsername] = useState("");
+  const [submitIndice, setSubmitIndice] = useState("");
   const [roomInfo, setRoomInfo] = useState([]);
   const [nbMaxPlayer, setNbMaxPlayer] = useState(0);
   const [started, setStarted] = useState(false);
   const [broadcastMessage, setBroadcastMessage] = useState("");
-  const [seconds, setSeconds] = useState(11);
+  const [seconds, setSeconds] = useState(10);
+  const [countdown, setCountdown] = useState(null);
+
 
   const handleConnect = (event) => {
     socket.emit('joinRoom', roomId, Username);
@@ -50,32 +54,39 @@ const Game = (props) => {
   socket.on("broadcastMessage", (message) => {
     setBroadcastMessage(message);
     setStarted(true);
-    startTimer();
   });
 
   socket.on("arrayTourUsername", (arrayTourUsername, arrayTour) => {
     setArrayTourUsername(arrayTourUsername);
     setarrayAllPlayer(arrayTour);
+    if(arrayTourUsername == Username){
+      setIsMyTour(true);
+    }else{
+      setIsMyTour(false);
+    }
   });
 
   socket.on("indices", (message) => {
     setIndices(message);
   });
 
-  const startTimer = () => {
-    let timer = null;
-    if (seconds > 0) {
-      timer = setTimeout(() => setSeconds(seconds - 1), 1000);
-    }else{
-      socket.emit('nextPlayer', roomId, arrayTourUsername);
-      setSeconds(10);
-    }
-    return () => clearTimeout(timer);
-  };
+  socket.on("timer", (timer, countdown) => {
+    setCountdown(countdown);
+    setSeconds(timer);
+  });
 
-  useEffect(() => {
-    startTimer();
-  }, [seconds]);
+  socket.on("timeout", (roomId) => {
+    socket.emit('nextPlayer', roomId, arrayTourUsername);
+  });
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    socket.emit('submitIndice', roomId, submitIndice, Username);
+    setSubmitIndice('');
+    setIsMyTour(false);
+    socket.emit('nextPlayer', roomId, arrayTourUsername);
+    socket.emit('resetTimer', countdown, roomId);
+  };
 
   if(connected){
     return (
@@ -101,9 +112,11 @@ const Game = (props) => {
                     <div>
                       Indices :
                       <ul>
-                        {indices.map((ind) => (
-                          <li key={ind.id}>{ind.mot}</li>
-                        ))}
+                        {indices
+                          .filter((ind) => ind.username === player.username && ind.roomId == roomId)
+                          .map((ind, index) => (
+                            <li key={index}>{ind.indice}</li>
+                          ))}
                       </ul>
                     </div>
                   ) : null}
@@ -118,7 +131,19 @@ const Game = (props) => {
             Mot attribué : <b>{broadcastMessage}</b>
             <br></br>
             <br></br>
-            Au tour de  <b>{arrayTourUsername}</b> de donner un indice, temps restant : {seconds} secondes.
+            Au tour de  <b>{arrayTourUsername}</b> de donner un indice, temps restant : <b>{seconds}</b> secondes.
+            {isMyTour ? (
+              <div>
+                <br></br>
+                <form onSubmit={handleSubmit}>
+                <label>
+                  <b>Indice :</b>
+                  <input type="text" className="inputIndice" value={submitIndice} onChange={(e) => setSubmitIndice(e.target.value)} />
+                </label>
+                <button type="submit" className="buttonIndice">Envoyer</button>
+              </form>
+              </div>
+            ) : null}
           </div>
         ) : null}
       </div>

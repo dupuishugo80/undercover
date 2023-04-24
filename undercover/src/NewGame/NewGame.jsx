@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import * as gameFunctions from "../game";
 import io from "socket.io-client";
 import { useParams } from "react-router-dom";
@@ -15,6 +15,15 @@ function ChatRoom() {
   const [nbPlayer, setNbPlayer] = useState(0);
   const [arrayPlayer, setArrayPlayer] = useState([]);
   const [broadcastMessage, setBroadcastMessage] = useState("");
+  const [seconds, setSeconds] = useState(10);
+  // const [timer, setTimer] = useState(false);
+  const [submitIndice, setSubmitIndice] = useState("");
+  const [arrayTourUsername, setArrayTourUsername] = useState("");
+  const [arrayAllPlayer, setarrayAllPlayer] = useState([]);
+  const [indices, setIndices] = useState([]);
+  const [isMyTour, setIsMyTour] = useState(false);
+  const [countdown, setCountdown] = useState(null);
+
 
   function handleConnect() {
     socket.emit("createRoom", roomId, Owner, nbMaxPlayer);
@@ -45,6 +54,38 @@ function ChatRoom() {
     setStarted(true);
   });
 
+  socket.on("arrayTourUsername", (arrayTourUsername, arrayTour) => {
+    setArrayTourUsername(arrayTourUsername);
+    setarrayAllPlayer(arrayTour);
+    if(arrayTourUsername == Owner){
+      setIsMyTour(true);
+    }else{
+      setIsMyTour(false);
+    }
+  });
+
+  socket.on("indices", (message) => {
+    setIndices(message);
+  });
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    socket.emit('submitIndice', roomId, submitIndice, Owner);
+    setSubmitIndice('');
+    setIsMyTour(false);
+    socket.emit('nextPlayer', roomId, arrayTourUsername);
+    socket.emit('resetTimer', countdown, roomId)
+  };
+
+  socket.on("timer", (timer, countdown) => {
+    setCountdown(countdown);
+    setSeconds(timer);
+  });
+
+  socket.on("timeout", (roomId) => {
+    socket.emit('nextPlayer', roomId, arrayTourUsername);
+  });
+
   if (connected) {
     return (
       <div className="container">
@@ -63,7 +104,21 @@ function ChatRoom() {
             <h1>Liste des joueurs :</h1>
             <ul>
               {arrayPlayer.map((player) => (
-                <li key={player.socketId}>{player.username}</li>
+                <li key={player.socketId}>
+                  {player.username}
+                  {started ? (
+                    <div>
+                      Indices :
+                      <ul>
+                        {indices
+                          .filter((ind) => ind.username === player.username && ind.roomId == roomId)
+                          .map((ind, index) => (
+                            <li key={index}>{ind.indice}</li>
+                          ))}
+                      </ul>
+                    </div>
+                  ) : null}
+                </li>
               ))}
             </ul>
           </div>
@@ -79,6 +134,21 @@ function ChatRoom() {
           <div>
             <br></br>
             Mot attribué : <b>{broadcastMessage}</b>
+            <br></br>
+            <br></br>
+            Au tour de  <b>{arrayTourUsername}</b> de donner un indice, temps restant : <b>{seconds}</b> secondes.
+            {isMyTour ? (
+              <div>
+                <br></br>
+                <form onSubmit={handleSubmit}>
+                <label>
+                  <b>Indice :</b>
+                  <input type="text" className="inputIndice" value={submitIndice} onChange={(e) => setSubmitIndice(e.target.value)} />
+                </label>
+                <button type="submit" className="buttonIndice">Envoyer</button>
+              </form>
+              </div>
+            ) : null}
           </div>
         ) : null}
       </div>
