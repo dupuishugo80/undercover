@@ -19,6 +19,8 @@ function websocket() {
 
     let allPlayer = [{username: 0}];
 
+    const arrayTimer = [];
+
     io.on('connection', (socket) => {
 
     function starttimer(roomId){
@@ -34,11 +36,14 @@ function websocket() {
             count--;
         }
         }, 1000);
+        arrayTimer.push(countdown);
     }
 
     function resetTimer(countdown, roomId) {
-        clearInterval(countdown);
-        starttimer(roomId);
+        arrayTimer.forEach((countdown) => {
+            clearInterval(countdown);
+          });
+          starttimer(roomId);
       }
 
     socket.on('resetTimer', (countdown, roomId)  => {
