@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import "../Game/Game.css";
 import * as gameFunctions  from '../game.js';
@@ -14,10 +14,14 @@ const Game = (props) => {
   const [connected, setConnected] = useState(false);
   const [nbPlayer, setNbPlayer] = useState(0);
   const [arrayPlayer, setArrayPlayer] = useState([]);
+  const [indices, setIndices] = useState([]);
+  const [arrayAllPlayer, setarrayAllPlayer] = useState([]);
+  const [arrayTourUsername, setArrayTourUsername] = useState("");
   const [roomInfo, setRoomInfo] = useState([]);
   const [nbMaxPlayer, setNbMaxPlayer] = useState(0);
   const [started, setStarted] = useState(false);
   const [broadcastMessage, setBroadcastMessage] = useState("");
+  const [seconds, setSeconds] = useState(11);
 
   const handleConnect = (event) => {
     socket.emit('joinRoom', roomId, Username);
@@ -46,7 +50,32 @@ const Game = (props) => {
   socket.on("broadcastMessage", (message) => {
     setBroadcastMessage(message);
     setStarted(true);
+    startTimer();
   });
+
+  socket.on("arrayTourUsername", (arrayTourUsername, arrayTour) => {
+    setArrayTourUsername(arrayTourUsername);
+    setarrayAllPlayer(arrayTour);
+  });
+
+  socket.on("indices", (message) => {
+    setIndices(message);
+  });
+
+  const startTimer = () => {
+    let timer = null;
+    if (seconds > 0) {
+      timer = setTimeout(() => setSeconds(seconds - 1), 1000);
+    }else{
+      socket.emit('nextPlayer', roomId, arrayTourUsername);
+      setSeconds(10);
+    }
+    return () => clearTimeout(timer);
+  };
+
+  useEffect(() => {
+    startTimer();
+  }, [seconds]);
 
   if(connected){
     return (
@@ -66,7 +95,19 @@ const Game = (props) => {
             <h1>Liste des joueurs :</h1>
             <ul>
               {arrayPlayer.map((player) => (
-                <li key={player.socketId}>{player.username}</li>
+                <li key={player.socketId}>
+                  {player.username}
+                  {started ? (
+                    <div>
+                      Indices :
+                      <ul>
+                        {indices.map((ind) => (
+                          <li key={ind.id}>{ind.mot}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+                </li>
               ))}
             </ul>
           </div>
@@ -75,6 +116,9 @@ const Game = (props) => {
           <div>
             <br></br>
             Mot attribué : <b>{broadcastMessage}</b>
+            <br></br>
+            <br></br>
+            Au tour de  <b>{arrayTourUsername}</b> de donner un indice, temps restant : {seconds} secondes.
           </div>
         ) : null}
       </div>

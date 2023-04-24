@@ -14,7 +14,7 @@ function api() {
         console.log("API ON sur le Port : 7777")
     })
 
-    const db = mysql.createConnection({host: "db4free.net", user: "dbangular", password:"Azerty123*", database: "dbangular"})
+    const db = mysql.createConnection({host: "52.47.126.37", user: "admin", password:"Azerty123*", database: "undercover"})
     db.connect(function(err) {   
         if (err){
             console.log(err)

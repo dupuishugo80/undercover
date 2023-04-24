@@ -15,6 +15,10 @@ function websocket() {
 
     const arrayRoomInfo = [];
 
+    const indices = [];
+
+    let allPlayer = [];
+
     io.on('connection', (socket) => {
 
     socket.on('joinRoom', (roomId,username)  => {
@@ -72,6 +76,27 @@ function websocket() {
         otherSocketsInRoom.forEach((element) => {
             io.to(element.socketId).emit("broadcastMessage", wordlist[1]);
           });
+        io.to(roomId).emit("indices", indices);
+        const arrayTour = arrayRoom.filter(entree => entree.roomId === roomId);
+        const arrayTourToSend = arrayTour.map(objet => {
+            return {
+                roomId: objet.roomId,
+                socketId: objet.socketId,
+                username: objet.username,
+                alive: true
+            };
+          });
+        io.to(roomId).emit("arrayTourUsername", arrayTour[0].username, arrayTourToSend);
+        allPlayer = arrayTourToSend;
+    });
+
+    socket.on('nextPlayer', async (roomId, beforeplayer)  => {
+        const index = allPlayer.findIndex(user => user.username === beforeplayer);
+        if (index !== allPlayer.length - 1) {
+            io.to(roomId).emit("arrayTourUsername", allPlayer[index + 1].username, allPlayer);
+          } else {
+            io.to(roomId).emit("arrayTourUsername", allPlayer[0].username, allPlayer);
+          }
     });
 
     socket.on('disconnect', () => {
