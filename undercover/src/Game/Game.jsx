@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 
 import "../Game/Game.css";
-import * as gameFunctions  from '../game.js';
 
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import io from 'socket.io-client';
 
 
@@ -16,10 +15,10 @@ const Game = (props) => {
   const [nbPlayer, setNbPlayer] = useState(0);
   const [arrayPlayer, setArrayPlayer] = useState([]);
   const [indices, setIndices] = useState([]);
-  const [arrayAllPlayer, setarrayAllPlayer] = useState([]);
+  // const [arrayAllPlayer, setarrayAllPlayer] = useState([]);
   const [arrayTourUsername, setArrayTourUsername] = useState("");
   const [submitIndice, setSubmitIndice] = useState("");
-  const [roomInfo, setRoomInfo] = useState([]);
+  // const [roomInfo, setRoomInfo] = useState([]);
   const [nbMaxPlayer, setNbMaxPlayer] = useState(0);
   const [started, setStarted] = useState(false);
   const [broadcastMessage, setBroadcastMessage] = useState("");
@@ -32,7 +31,7 @@ const Game = (props) => {
   };
 
   socket.on("isConnected", (state, room) => {
-    if(state == true){
+    if(state === true){
       setConnected(true);
     }
   })
@@ -46,7 +45,6 @@ const Game = (props) => {
   })
 
   socket.on("roomInfo", (roomInfo) => {
-    setRoomInfo(roomInfo);
     setNbMaxPlayer(roomInfo.find((item) => item.roomId === roomId).nbMaxPlayer);
   })
 
@@ -57,8 +55,7 @@ const Game = (props) => {
 
   socket.on("arrayTourUsername", (arrayTourUsername, arrayTour) => {
     setArrayTourUsername(arrayTourUsername);
-    setarrayAllPlayer(arrayTour);
-    if(arrayTourUsername == Username){
+    if(arrayTourUsername === Username){
       setIsMyTour(true);
     }else{
       setIsMyTour(false);
@@ -112,7 +109,7 @@ const Game = (props) => {
                       Indices :
                       <ul>
                         {indices
-                          .filter((ind) => ind.username === player.username && ind.roomId == roomId)
+                          .filter((ind) => ind.username === player.username && ind.roomId === roomId)
                           .map((ind, index) => (
                             <li key={index}>{ind.indice}</li>
                           ))}

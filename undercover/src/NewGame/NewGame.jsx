@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import * as gameFunctions from "../game";
 import io from "socket.io-client";
 import { useParams } from "react-router-dom";
@@ -16,10 +16,9 @@ function ChatRoom() {
   const [arrayPlayer, setArrayPlayer] = useState([]);
   const [broadcastMessage, setBroadcastMessage] = useState("");
   const [seconds, setSeconds] = useState(10);
-  // const [timer, setTimer] = useState(false);
   const [submitIndice, setSubmitIndice] = useState("");
   const [arrayTourUsername, setArrayTourUsername] = useState("");
-  const [arrayAllPlayer, setarrayAllPlayer] = useState([]);
+  // const [arrayAllPlayer, setarrayAllPlayer] = useState([]);
   const [indices, setIndices] = useState([]);
   const [isMyTour, setIsMyTour] = useState(false);
   const [countdown, setCountdown] = useState(null);
@@ -30,7 +29,7 @@ function ChatRoom() {
   }
 
   socket.on("isConnected", (state, room) => {
-    if (state == true) {
+    if (state === true) {
       setConnected(true);
     }
   });
@@ -56,8 +55,7 @@ function ChatRoom() {
 
   socket.on("arrayTourUsername", (arrayTourUsername, arrayTour) => {
     setArrayTourUsername(arrayTourUsername);
-    setarrayAllPlayer(arrayTour);
-    if(arrayTourUsername == Owner){
+    if(arrayTourUsername === Owner){
       setIsMyTour(true);
     }else{
       setIsMyTour(false);
@@ -111,7 +109,7 @@ function ChatRoom() {
                       Indices :
                       <ul>
                         {indices
-                          .filter((ind) => ind.username === player.username && ind.roomId == roomId)
+                          .filter((ind) => ind.username === player.username && ind.roomId === roomId)
                           .map((ind, index) => (
                             <li key={index}>{ind.indice}</li>
                           ))}
