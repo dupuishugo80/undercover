@@ -43,7 +43,6 @@ const Game = (props) => {
 
   socket.on("listPlayer", (listPlayer) => {
     setArrayPlayer(listPlayer);
-    const objet = listPlayer.find((o) => o.socketId === socket.id);
   })
 
   socket.on("roomInfo", (roomInfo) => {

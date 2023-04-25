@@ -66,8 +66,10 @@ function websocket() {
                 if (index === -1) {
                     arrayRoom.push(entryToCheck);
                 }
-                io.to(roomId).emit("listPlayer", (arrayRoom));
-                io.to(roomId).emit("roomInfo", (arrayRoomInfo));
+                const filteredArrayRoom = arrayRoom.filter(item => item.roomId === roomId);
+                const filteredArrayRoomInfo = arrayRoomInfo.filter(item => item.roomId === roomId);
+                io.to(roomId).emit("listPlayer", (filteredArrayRoom));
+                io.to(roomId).emit("roomInfo", (filteredArrayRoomInfo));
             }
         }
     });
@@ -93,7 +95,8 @@ function websocket() {
             if (indexInfo === -1) {
                 arrayRoomInfo.push(entryToCheckInfo);
             }
-            io.to(roomId).emit("listPlayer", (arrayRoom));
+            const filteredArrayRoom = arrayRoom.filter(item => item.roomId === roomId);
+            io.to(roomId).emit("listPlayer", (filteredArrayRoom));
         }
     });
 
