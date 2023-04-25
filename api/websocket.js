@@ -21,6 +21,8 @@ function websocket() {
 
     const arrayTimer = [];
 
+    const inGame = [];
+
     io.on('connection', (socket) => {
 
     function starttimer(roomId){
@@ -35,6 +37,15 @@ function websocket() {
             io.to(roomId).emit("timer", count, countdown);
             count--;
         }
+
+        const element = inGame.find(element => element.roomId === roomId);
+        if (element) {
+          const touractuel = element.touractuel;
+          const tourmax = element.tourmax;
+          const indice = element.indice;
+          io.to(roomId).emit("inGame", touractuel, tourmax, indice);        
+        } 
+
         }, 1000);
         arrayTimer.push(countdown);
     }
@@ -123,6 +134,13 @@ function websocket() {
         io.to(roomId).emit("arrayTourUsername", arrayTour[0].username, arrayTourToSend);
         allPlayer = arrayTourToSend;
         starttimer(roomId);
+        const info = arrayRoomInfo.find(obj => obj.roomId === roomId);
+        if(typeof info !== 'undefined'){
+            const existeDeja = inGame.some(element => element.roomId === roomId);
+            if (!existeDeja) {
+                inGame.push({ roomId: roomId, touractuel: 1, tourmax: info.nbMaxPlayer-1, indice: 0 });
+            }
+        }
     });
 
     socket.on('nextPlayer', async (roomId, beforeplayer)  => {
@@ -137,6 +155,46 @@ function websocket() {
     socket.on('submitIndice', async (roomId, submitIndice, Username)  => {
         indices.push({ roomId: roomId, indice: submitIndice, username: Username });
         io.to(roomId).emit("indices", indices);
+
+        // Rechercher l'index de l'élément dont roomId est égal à 1
+        const indexinGame = inGame.findIndex(element => element.roomId === roomId);
+        if (indexinGame !== -1) {
+            const nbindicebeforeadd = inGame[indexinGame].indice;
+            const beforetour = inGame[indexinGame].touractuel;
+            const tourmax = inGame[indexinGame].tourmax;
+            const filteredArrayRoom = arrayRoom.filter(item => item.roomId === roomId);
+            const count = indices.filter((index) => index.roomId === roomId)
+            .reduce((acc, index) => {
+            const user = filteredArrayRoom.find((u) => u.username === index.username);
+              if (user) {
+                acc[user.username] = acc[user.username] ? acc[user.username] + 1 : 1;
+              }
+              return acc;
+            }, {});
+          
+          console.log(count); 
+          const nbPlayer = filteredArrayRoom.length;
+
+          for (var i = 0; i < filteredArrayRoom.length; i++) {
+                if (filteredArrayRoom[i].roomId === roomId) {
+                    var valeur = count[filteredArrayRoom[i].username];
+                    console.log(filteredArrayRoom[i].username + ' : ' + valeur);
+                }
+            }
+            if(count[filteredArrayRoom[filteredArrayRoom.length - 1].username] === count[filteredArrayRoom[0].username]){
+                if(count[filteredArrayRoom[filteredArrayRoom.length - 1].username]%3 === 0){
+                    inGame[indexinGame].indice = 0;
+                    if(beforetour === tourmax){
+                        inGame[indexinGame].touractuel = 0;
+                    }else{
+                        inGame[indexinGame].touractuel +=1;
+                    }
+                }else{
+                    inGame[indexinGame].indice += 1;
+                }
+            }
+        }
+        
     });
 
     socket.on('disconnect', () => {

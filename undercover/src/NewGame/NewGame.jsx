@@ -18,10 +18,12 @@ function ChatRoom() {
   const [seconds, setSeconds] = useState(10);
   const [submitIndice, setSubmitIndice] = useState("");
   const [arrayTourUsername, setArrayTourUsername] = useState("");
-  // const [arrayAllPlayer, setarrayAllPlayer] = useState([]);
   const [indices, setIndices] = useState([]);
   const [isMyTour, setIsMyTour] = useState(false);
   const [countdown, setCountdown] = useState(null);
+  const [tourActuel, setTourActuel] = useState(0);
+  const [tourMax, setTourMax] = useState(0);
+  const [indiceParTour, setIndiceParTour] = useState(0);
 
 
   function handleConnect() {
@@ -47,6 +49,12 @@ function ChatRoom() {
   function handleClick() {
     socket.emit("startGame", roomId);
   }
+
+  socket.on("inGame", (touractuel, tourmax, indice) => {
+    setTourActuel(touractuel);
+    setTourMax(tourmax);
+    setIndiceParTour(indice);
+  });
 
   socket.on("broadcastMessage", async (message) => {
     setBroadcastMessage(message);
@@ -111,7 +119,7 @@ function ChatRoom() {
                         {indices
                           .filter((ind) => ind.username === player.username && ind.roomId === roomId)
                           .map((ind, index) => (
-                            <li key={index}>{ind.indice}</li>
+                            <b><li key={index}>{ind.indice}</li></b>
                           ))}
                       </ul>
                     </div>
@@ -130,8 +138,13 @@ function ChatRoom() {
         ) : null}
         {started ? (
           <div>
-            <br></br>
+           <br></br>
             Mot attribué : <b>{broadcastMessage}</b>
+            <br></br>
+            <br></br>
+            Tour : <b>{tourActuel}/{tourMax}</b>
+            <br></br>
+            Indice : <b>{indiceParTour}/3</b>
             <br></br>
             <br></br>
             Au tour de  <b>{arrayTourUsername}</b> de donner un indice, temps restant : <b>{seconds}</b> secondes.
