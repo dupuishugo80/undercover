@@ -15,7 +15,9 @@ function websocket() {
     let allPlayer = [{username: 0}];
     const arrayTimer = [];
     const inGame = [];
-    const allVote = []
+    const allVote = [];
+    const undercover = [];
+    let playerInGame = [];
 
     io.on('connection', (socket) => {
 
@@ -70,6 +72,7 @@ function websocket() {
                 });
                 if (index === -1) {
                     arrayRoom.push(entryToCheck);
+                    playerInGame.push(entryToCheck);
                 }
                 const filteredArrayRoom = arrayRoom.filter(item => item.roomId === roomId);
                 const filteredArrayRoomInfo = arrayRoomInfo.filter(item => item.roomId === roomId);
@@ -92,6 +95,7 @@ function websocket() {
             });
             if (index === -1) {
                 arrayRoom.push(entryToCheck);
+                playerInGame.push(entryToCheck);
             }
             const entryToCheckInfo = {roomId: roomId, nbMaxPlayer: nbMaxPlayer};
             const indexInfo = arrayRoomInfo.findIndex((obj) => {
@@ -110,8 +114,10 @@ function websocket() {
         const socketsInRoom = arrayRoom.filter((socketRoom) => socketRoom.roomId === roomId);
         const randomIndex = Math.floor(Math.random() * socketsInRoom.length);
         const randomSocketId = socketsInRoom[randomIndex].socketId;
+        const undercoverusername = socketsInRoom[randomIndex].username;
         const otherSocketsInRoom = socketsInRoom.filter((socketRoom) => socketRoom.socketId !== randomSocketId);
         io.to(randomSocketId).emit("broadcastMessage", wordlist[0]);
+        undercover.push({roomId: roomId, username: undercoverusername});
         otherSocketsInRoom.forEach((element) => {
             io.to(element.socketId).emit("broadcastMessage", wordlist[1]);
           });
@@ -149,7 +155,6 @@ function websocket() {
     socket.on('submitIndice', async (roomId, submitIndice, Username)  => {
         indices.push({ roomId: roomId, indice: submitIndice, username: Username });
         io.to(roomId).emit("indices", indices);
-
         // Rechercher l'index de l'élément dont roomId est égal à 1
         const indexinGame = inGame.findIndex(element => element.roomId === roomId);
         if (indexinGame !== -1) {
@@ -208,7 +213,23 @@ function websocket() {
                 }
                 return acc;
               }, Object.keys(count)[0]);
-            io.to(roomId).emit("votedPlayer", result);
+            const findroom = undercover.find(obj => obj.roomId === roomId);
+            const und = findroom.username;
+            playerInGame = playerInGame.filter(function(element) {
+                return element.roomId !== roomId || element.username !== result;
+              });
+            console.log(playerInGame);
+            const nbplayerrestant = playerInGame.filter(objet => objet.roomId === roomId).length;
+            if(result === und){
+                io.to(roomId).emit("votedPlayer", result, true, true);
+            }else{
+                if(nbplayerrestant === 2){
+                    io.to(roomId).emit("votedPlayer", result, true, false, und);
+                }else{
+                    io.to(roomId).emit("votedPlayer", result, false, false);
+                }
+            }
+            
             resetTimer();
             starttimer(roomId);
         }

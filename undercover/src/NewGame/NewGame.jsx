@@ -27,6 +27,13 @@ function ChatRoom() {
   const [tourVote, setTourVote] = useState(false);
   const [votedPlayer, setVotedPlayer] = useState("");
   const [alreadyVote, setAlreadyVote] = useState(false);
+  const [loose, setLoose] = useState(false);
+  const [win, setWin] = useState(false);
+  const [votedPlayerFalse, setVotedPlayerFalse] = useState("");
+  const [votedPlayerTrue, setVotedPlayerTrue] = useState("");
+  const [undercoverUsername, setUndercoverUsername] = useState("");
+  const [badVote, setBadVote] = useState("");
+  const [finished, setFinished] = useState(false);
 
 
   function handleConnect() {
@@ -95,9 +102,25 @@ function ChatRoom() {
     setTourVote(true);
   });
 
-  socket.on("votedPlayer", (username) => {
+  socket.on("votedPlayer", (username, finished, innocentwin, und = "") => {
     setTourVote(false);
-    setVotedPlayer(username);
+    if(finished){
+      if(innocentwin){
+        setVotedPlayerTrue(username);
+        setWin(true);
+        setStarted(false);
+        setFinished(true);
+      }else{
+        setVotedPlayerFalse(username);
+        setUndercoverUsername(und);
+        setFinished(true);
+        setStarted(false);
+        setLoose(true)
+      }
+    }else{
+      setBadVote(true);
+      setVotedPlayerFalse(username);
+    }
   });
 
   function handleVote(username) {
@@ -154,11 +177,15 @@ function ChatRoom() {
           </div>
         </div>
         {!started ? (
-          <div className="div-button">
-          <button className="buttonstart" onClick={handleClick}>
-            Lancer la partie
-          </button>
-        </div>
+          <div>
+           {!finished ? (
+            <div className="div-button">
+            <button className="buttonstart" onClick={handleClick}>
+              Lancer la partie
+            </button>
+            </div>
+            ) : null}
+          </div>
         ) : null}
         {started ? (
           <div>
@@ -169,9 +196,6 @@ function ChatRoom() {
             Tour : <b>{tourActuel}/{tourMax}</b>
             <br></br>
             Indice : <b>{indiceParTour}/3</b>
-            <br></br>
-            <br></br>
-            Joueur voté: : <b>{votedPlayer}</b>
             <br></br>
             <br></br>
             {!tourVote ? (
@@ -198,6 +222,21 @@ function ChatRoom() {
         ) : null}
         </div>
       ) : null }
+      {loose ? (
+        <div>
+          <b>{votedPlayerFalse}</b> a été désigné comme étant l'Undercover, il était innocent. <b>{undercoverUsername}</b> remporte la partie. !
+        </div>
+      ) : null}
+      {win ? (
+        <div>
+          <b>{votedPlayerTrue}</b> a été désigné comme étant l'Undercover, il était coupable. Les innocents remportent la partie. !
+        </div>
+      ) : null}
+      {badVote ? (
+        <div>
+          <b>{votedPlayerFalse}</b> a été désigné comme étant l'Undercover, il était innocent. La partie continue.
+        </div>
+      ) : null}
       </div>
     );
   } else {
