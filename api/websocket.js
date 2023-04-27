@@ -8,20 +8,14 @@ function websocket() {
     });
 
     const gameFunctions = require('./utils');
-
     const chatRooms = new Map();
-
     const arrayRoom = [];
-
     const arrayRoomInfo = [];
-
     const indices = [];
-
     let allPlayer = [{username: 0}];
-
     const arrayTimer = [];
-
     const inGame = [];
+    const allVote = []
 
     io.on('connection', (socket) => {
 
@@ -172,13 +166,11 @@ function websocket() {
               return acc;
             }, {});
           
-          console.log(count); 
           const nbPlayer = filteredArrayRoom.length;
 
           for (var i = 0; i < filteredArrayRoom.length; i++) {
                 if (filteredArrayRoom[i].roomId === roomId) {
                     var valeur = count[filteredArrayRoom[i].username];
-                    console.log(filteredArrayRoom[i].username + ' : ' + valeur);
                 }
             }
             if(count[filteredArrayRoom[filteredArrayRoom.length - 1].username] === count[filteredArrayRoom[0].username]){
@@ -188,6 +180,7 @@ function websocket() {
                         inGame[indexinGame].touractuel = 0;
                     }else{
                         inGame[indexinGame].touractuel +=1;
+                        io.to(roomId).emit("tourVote");
                     }
                 }else{
                     inGame[indexinGame].indice += 1;
@@ -195,6 +188,28 @@ function websocket() {
             }
         }
         
+    });
+
+    socket.on('submitVote', async (roomId, username)  => {
+        const filteredArrayRoom = arrayRoom.filter(item => item.roomId === roomId);
+        allVote.push({ roomId: roomId, username: username});
+        if(allVote.length === filteredArrayRoom.length ){
+            const count = allVote.filter((index) => index.roomId === roomId)
+            .reduce((acc, index) => {
+            const user = filteredArrayRoom.find((u) => u.username === index.username);
+              if (user) {
+                acc[user.username] = acc[user.username] ? acc[user.username] + 1 : 1;
+              }
+              return acc;
+            }, {});
+            const result = Object.entries(count).reduce((acc, [key, value]) => {
+                if (value > count[acc]) {
+                  return key;
+                }
+                return acc;
+              }, Object.keys(count)[0]);
+              io.to(roomId).emit("votedPlayer", result);
+        }
     });
 
     socket.on('disconnect', () => {

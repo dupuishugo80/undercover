@@ -25,6 +25,9 @@ const Game = (props) => {
   const [tourActuel, setTourActuel] = useState(0);
   const [tourMax, setTourMax] = useState(0);
   const [indiceParTour, setIndiceParTour] = useState(0);
+  const [tourVote, setTourVote] = useState(false);
+  const [votedPlayer, setVotedPlayer] = useState("");
+  const [alreadyVote, setAlreadyVote] = useState(false);
 
   const handleConnect = (event) => {
     socket.emit('joinRoom', roomId, Username);
@@ -81,6 +84,20 @@ const Game = (props) => {
     setIndiceParTour(indice);
   });
 
+  socket.on("tourVote", () => {
+    setTourVote(true);
+  });
+
+  socket.on("votedPlayer", (username) => {
+    setTourVote(false);
+    setVotedPlayer(username);
+  });
+
+  function handleVote(username) {
+    socket.emit("submitVote", roomId, username);
+    setAlreadyVote(true);
+  }
+
   const handleSubmit = (event) => {
     event.preventDefault();
     socket.emit('submitIndice', roomId, submitIndice, Username);
@@ -110,6 +127,13 @@ const Game = (props) => {
               {arrayPlayer.map((player) => (
                 <li key={player.socketId}>
                   {player.username}
+                  {tourVote ? (
+                    <div>
+                    {!alreadyVote ? (
+                      <button className="buttonvote" onClick={() => handleVote(player.username)}>Voter</button>
+                    ) : null}
+                    </div>
+                  ) : null}
                   {started ? (
                     <div>
                       Indices :
@@ -129,7 +153,7 @@ const Game = (props) => {
         </div>
         {started ? (
           <div>
-            <br></br>
+           <br></br>
             Mot attribué : <b>{broadcastMessage}</b>
             <br></br>
             <br></br>
@@ -138,21 +162,33 @@ const Game = (props) => {
             Indice : <b>{indiceParTour}/3</b>
             <br></br>
             <br></br>
-            Au tour de  <b>{arrayTourUsername}</b> de donner un indice, temps restant : <b>{seconds}</b> secondes.
-            {isMyTour ? (
+            Joueur voté: : <b>{votedPlayer}</b>
+            <br></br>
+            <br></br>
+            {!tourVote ? (
               <div>
-                <br></br>
-                <form onSubmit={handleSubmit}>
-                <label>
-                  <b>Indice :</b>
-                  <input type="text" className="inputIndice" value={submitIndice} onChange={(e) => setSubmitIndice(e.target.value)} />
-                </label>
-                <button type="submit" className="buttonIndice">Envoyer</button>
-              </form>
+                Au tour de  <b>{arrayTourUsername}</b> de donner un indice, temps restant : <b>{seconds}</b> secondes.
+              {isMyTour ? (
+                <div>
+                  <br></br>
+                  <form onSubmit={handleSubmit}>
+                  <label>
+                    <b>Indice :</b>
+                    <input type="text" className="inputIndice" value={submitIndice} onChange={(e) => setSubmitIndice(e.target.value)} />
+                  </label>
+                  <button type="submit" className="buttonIndice">Envoyer</button>
+                </form>
               </div>
-            ) : null}
+              ) : null}
+          </div>
+          ) : null}
+        {tourVote ? (
+          <div>
+          Il est maintenant l'heure de voter pour celui que tu penses être l'imposteur
           </div>
         ) : null}
+        </div>
+      ) : null }
       </div>
     );
   }else{

@@ -24,6 +24,9 @@ function ChatRoom() {
   const [tourActuel, setTourActuel] = useState(0);
   const [tourMax, setTourMax] = useState(0);
   const [indiceParTour, setIndiceParTour] = useState(0);
+  const [tourVote, setTourVote] = useState(false);
+  const [votedPlayer, setVotedPlayer] = useState("");
+  const [alreadyVote, setAlreadyVote] = useState(false);
 
 
   function handleConnect() {
@@ -88,6 +91,20 @@ function ChatRoom() {
     setSeconds(timer);
   });
 
+  socket.on("tourVote", () => {
+    setTourVote(true);
+  });
+
+  socket.on("votedPlayer", (username) => {
+    setTourVote(false);
+    setVotedPlayer(username);
+  });
+
+  function handleVote(username) {
+    socket.emit("submitVote", roomId, username);
+    setAlreadyVote(true);
+  }
+
   socket.on("timeout", (roomId) => {
     socket.emit('nextPlayer', roomId, arrayTourUsername);
   });
@@ -111,7 +128,14 @@ function ChatRoom() {
             <ul>
               {arrayPlayer.map((player) => (
                 <li key={player.socketId}>
-                  {player.username}
+                  {player.username} 
+                  {tourVote ? (
+                    <div>
+                    {!alreadyVote ? (
+                      <button className="buttonvote" onClick={() => handleVote(player.username)}>Voter</button>
+                    ) : null}
+                    </div>
+                  ) : null}
                   {started ? (
                     <div>
                       Indices :
@@ -147,21 +171,33 @@ function ChatRoom() {
             Indice : <b>{indiceParTour}/3</b>
             <br></br>
             <br></br>
-            Au tour de  <b>{arrayTourUsername}</b> de donner un indice, temps restant : <b>{seconds}</b> secondes.
-            {isMyTour ? (
+            Joueur voté: : <b>{votedPlayer}</b>
+            <br></br>
+            <br></br>
+            {!tourVote ? (
               <div>
-                <br></br>
-                <form onSubmit={handleSubmit}>
-                <label>
-                  <b>Indice :</b>
-                  <input type="text" className="inputIndice" value={submitIndice} onChange={(e) => setSubmitIndice(e.target.value)} />
-                </label>
-                <button type="submit" className="buttonIndice">Envoyer</button>
-              </form>
+                Au tour de  <b>{arrayTourUsername}</b> de donner un indice, temps restant : <b>{seconds}</b> secondes.
+              {isMyTour ? (
+                <div>
+                  <br></br>
+                  <form onSubmit={handleSubmit}>
+                  <label>
+                    <b>Indice :</b>
+                    <input type="text" className="inputIndice" value={submitIndice} onChange={(e) => setSubmitIndice(e.target.value)} />
+                  </label>
+                  <button type="submit" className="buttonIndice">Envoyer</button>
+                </form>
               </div>
-            ) : null}
+              ) : null}
+          </div>
+          ) : null}
+        {tourVote ? (
+          <div>
+          Il est maintenant l'heure de voter pour celui que tu penses être l'imposteur
           </div>
         ) : null}
+        </div>
+      ) : null }
       </div>
     );
   } else {
