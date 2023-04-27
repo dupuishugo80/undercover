@@ -208,7 +208,9 @@ function websocket() {
                 }
                 return acc;
               }, Object.keys(count)[0]);
-              io.to(roomId).emit("votedPlayer", result);
+            io.to(roomId).emit("votedPlayer", result);
+            resetTimer();
+            starttimer(roomId);
         }
     });
 
